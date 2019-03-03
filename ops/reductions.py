@@ -21,10 +21,26 @@ def eliminate(A, pivot, point):
     factor = A[point[0], point[1]] / A[pivot[0], pivot[1]]
     i = point[0]
     pivot_row = pivot[0]
-    print('Subtracting {} times Row[{}] from Row[{}]'.format(factor, pivot_row, i))
+    print('By Subtracting {} times Row[{}] from Row[{}]'.format(factor, pivot_row, i))
     A[i, :] = A[i, :] - factor * A[pivot_row, :]
-    print(A)
     return A
+
+
+def next_pivot_row(matrix, pivot_row, pivot_col):
+    column = matrix[:, pivot_col]
+    for row_index in range(pivot_row + 1, len(column)):
+        if matrix[row_index, pivot_col] is not 0:
+            return row_index
+    # This column need to be skipped
+    return pivot_row
+
+
+def swap_rows(matrix, row1, row2):
+    print('Permuting Row[{}] and Row[{}]'.format(row1, row2))
+    garbage = np.array(matrix[row1, :])
+    matrix[row1, :] = np.array(matrix[row2, :])
+    matrix[row2, :] = garbage
+    return matrix
 
 
 def elimination(A):
@@ -33,21 +49,17 @@ def elimination(A):
     (m, n) = A.shape
     pivot_row = 0
     for j in range(n):
-        if all(A[pivot_row:, j] == 0):
-            continue
         if A[pivot_row, j] == 0:
-            raise RuntimeError("Row Exchange not implemented")
+            k = next_pivot_row(matrix=A, pivot_row=pivot_row, pivot_col=j)
+            if k is not pivot_row:
+                step_count = display_step(step_count)
+                A = swap_rows(matrix=A, row1=pivot_row, row2=k)
+                display_matrix(matrix=A)
+        if all(A[pivot_row+1:, j] == 0):
+            continue
         for i in range(pivot_row + 1, m):
-            display_step(step_count)
+            step_count = display_step(step_count)
             A = eliminate(A, pivot=(pivot_row, j), point=(i, j))
-            step_count += 1
+            display_matrix(matrix=A)
         pivot_row += 1
     return A
-
-
-if __name__ == '__main__':
-    A = np.ones((3, 4))
-    A[0, :] = [1, 2, 3, 1]
-    A[1, :] = [2, 2, 4, 1]
-    A[2, :] = [3, 4, 2, 1]
-    elimination(A)
